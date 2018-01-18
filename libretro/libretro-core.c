@@ -1046,20 +1046,31 @@ void retro_run(void)
    }
    */
 
+#include <cartridge.h>
+#include <tape.h>
+#include <datasette.h>
+
 bool retro_load_game(const struct retro_game_info *info)
 {
-   /*
-      struct retro_keyboard_callback cb = { keyboard_cb };
-      environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb);
-      */
-   const char *full_path = info->path;
+   if(info->meta) {
+      if(strcmp(info->meta, "cart") == 0)
+         cartridge_attach_image(CARTRIDGE_RETRO_REPLAY, info->path);
+      else if(strcmp(info->meta, "disk") == 0)
+        file_system_attach_disk(8, info->path);
+      else if(strcmp(info->meta, "eject") == 0)
+         file_system_detach_disk(8);
+      else if(strcmp(info->meta, "tap") == 0)
+         tape_image_attach(1, info->path);
+      else if(strcmp(info->meta, "play") == 0)
+         datasette_control(1);
+      else if(strcmp(info->meta, "stop") == 0)
+         datasette_control(0);
 
-   strcpy(RPATH,full_path);
-
-   update_variables();
-
-
-
+   } else {
+      const char *full_path = info->path;
+      strcpy(RPATH,full_path);
+      update_variables();
+   }
    return true;
 }
 

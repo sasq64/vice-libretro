@@ -4,7 +4,7 @@
 #include "machine.h"
 #include "fliplist.h"
 #include "mouse.h"
-
+#include "cartridge.h"
 #include "kbd.h"
 #include "mousedrv.h"
 #include "libretro-core.h"
@@ -65,6 +65,8 @@ void Keymap_KeyDown(int symkey)
          printf("enter gui!\n");
          break;
       case RETROK_F11:	// F11:
+          keyboard_clear_keymatrix();
+          cartridge_trigger_freeze();
          break;
       case RETROK_F12:	// F12: Reset
          machine_trigger_reset(MACHINE_RESET_MODE_SOFT);
