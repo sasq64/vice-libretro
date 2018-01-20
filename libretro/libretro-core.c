@@ -454,9 +454,27 @@ void retro_set_environment(retro_environment_t cb)
    cb(RETRO_ENVIRONMENT_SET_VARIABLES, variables);
 }
 
-static void update_variables(void)
+const char* get_var(const char *name, const char *def)
 {
+   struct retro_variable var;
+   var.key = name;
+   var.value = NULL;
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+      return var.value;
+   return def;
+}
 
+
+// Call this only after emulator (resources system) is initialized
+static void update_vice_variables(void)
+{
+   const char* v = get_var("vice_DriveSound", "disabled");
+   int on = (v ? strcmp(v, "disabled") != 0 : 0);
+   resources_set_int("DriveSoundEmulation", on);
+}
+
+static void update_variables()
+{
    struct retro_variable var;
 
    var.key = "vice_Statusbar";
@@ -481,14 +499,10 @@ static void update_variables(void)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      char str[100];
-      int val;
-      snprintf(str, sizeof(str), "%s", var.value);
-      val = strtoul(str, NULL, 0);
-
+      int n = strtoul(var.value, NULL, 0);
       if(retro_ui_finalized)
-         set_drive_type(8, val);
-      else RETRODRVTYPE=val;
+         set_drive_type(8, n);
+      else RETRODRVTYPE = n;
    }
 
    var.key = "vice_DriveTrueEmulation";
@@ -602,15 +616,19 @@ static void update_variables(void)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      if(retrojoy_init){
+      if (retrojoy_init) 
+      {
          if (strcmp(var.value, "enabled") == 0)
             resources_set_int( "RetroJoy", 1);
          if (strcmp(var.value, "disabled") == 0)
             resources_set_int( "RetroJoy", 0);
       }
-      else {
-         if (strcmp(var.value, "enabled") == 0)RETROJOY=1;
-         if (strcmp(var.value, "disabled") == 0)RETROJOY=0;
+      else
+      {
+         if (strcmp(var.value, "enabled") == 0)
+            RETROJOY=1;
+         if (strcmp(var.value, "disabled") == 0)
+            RETROJOY=0;
       }
    }
 
@@ -714,6 +732,7 @@ void Emu_init(void)
 #endif 
    update_variables();
    pre_main(RPATH);
+   update_vice_variables();
 }
 
 void Emu_uninit(void)
@@ -996,8 +1015,11 @@ void retro_run(void)
       lastH=retroH;
    }
 
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
       update_variables();
+      if(retro_ui_finalized)
+         update_vice_variables();
+   }
 
    if(mfirst==1)
    {
@@ -1127,4 +1149,3 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
    (void)enabled;
    (void)code;
 }
-
