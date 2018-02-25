@@ -118,7 +118,7 @@ struct RDIR *retro_opendir(const char *name)
    path_len = strlen(name);
 
    /* Non-NT platforms don't like extra slashes in the path */
-   if (name[path_len - 1] == '\\')
+   if (path_len > 0 && name[path_len - 1] == '\\')
       snprintf(path_buf, sizeof(path_buf), "%s*", name);
    else
       snprintf(path_buf, sizeof(path_buf), "%s\\*", name);
