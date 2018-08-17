@@ -144,6 +144,10 @@ struct RDIR *retro_opendir(const char *name)
    rdir->error = cellFsOpendir(name, &rdir->directory);
 #else
    rdir->directory = opendir(name);
+   if(!rdir->directory) {
+	   free(rdir);
+	   return NULL;
+   }
    rdir->entry     = NULL;
 #endif
 
@@ -165,6 +169,9 @@ bool retro_dirent_error(struct RDIR *rdir)
 
 int retro_readdir(struct RDIR *rdir)
 {
+	LOG_PUT("RDIR: %p", rdir);
+	if(!rdir)
+		return -1;
 #if defined(_WIN32)
    if(rdir->next)
 #if defined(LEGACY_WIN32)

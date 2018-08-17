@@ -32,6 +32,11 @@ in a public API, you may need this.
 
 /* conditional compilation is handled inside here */
 #include <compat/msvc.h>
-
+#ifdef __ANDROID__
+#include <android/log.h>
+#define LOG_PUT(...) __android_log_print(ANDROID_LOG_INFO, "RETRO", __VA_ARGS__);
+#else
+#define LOG_PUT(...) fprintf(stderr, __VA_ARGS__)
+#endif
 #endif
 
