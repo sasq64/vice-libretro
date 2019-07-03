@@ -93,6 +93,7 @@ dir_list(const char *dir, int return_subdirs, size_t *count)
     size_t size;
     RDIR *z;
 
+	LOG_PUT("Dir %s", dir);
     assert(dir);
     assert(count);
     strncpy(buffer, dir, MAX_PATH_LEN);

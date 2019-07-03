@@ -1,5 +1,8 @@
 DEBUG=0
-GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
+GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
+ifneq ($(GIT_VERSION)," unknown")
+   COMMONFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
+endif
 
 UNAME=$(shell uname -a)
 
@@ -114,11 +117,11 @@ else ifeq ($(platform), qnx)
 else ifeq ($(platform), androidstc)
    TARGET := $(TARGET_NAME)_libretro_android.so
    LDFLAGS += -lstdc++ -llog -shared -Wl,--version-script=$(CORE_DIR)/libretro/link.T -Wl,--no-undefined
-   CFLAGS += -DHAVE_GETCWD=1 -DHAVE_MEMMOVE=1 -DHAVE_ATEXIT=1 -DARM -DALIGN_DWORD -mstructure-size-boundary=32 -mthumb-interwork -falign-functions=16 -marm
+   CFLAGS += -DHAVE_GETCWD=1 -DHAVE_MEMMOVE=1 -DHAVE_ATEXIT=1 -DARM -DALIGN_DWORD -falign-functions=16 -marm
    CFLAGS += -O2 -pipe -fstack-protector 
 
-   CC = arm-linux-androideabi-gcc
-   CXX = arm-linux-androideabi-g++
+   CC = arm-linux-androideabi-clang
+   CXX = arm-linux-androideabi-clang++
    
    fpic = -fPIC
 # ANDROID
@@ -211,7 +214,7 @@ endif
 ifeq ($(DEBUG), 1)
 COMMONFLAGS += -O0 -g
 else
-COMMONFLAGS += -O3 -DNDEBUG -DGIT_VERSION=\"$(GIT_VERSION)\" 
+COMMONFLAGS += -O3 -DNDEBUG
 endif
 
 COMMONFLAGS += -DWANT_ZLIB

@@ -262,6 +262,12 @@ static int ioutil_count_dir_items(const char *path)
     return 0;
 }
 
+#ifdef __ANDROID__
+#include <android/log.h>
+#define LOG_PUT(...) __android_log_print(ANDROID_LOG_INFO, "RETRO", __VA_ARGS__);
+#else
+#define LOG_PUT(...) fprintf(stderr, __VA_ARGS__)
+#endif
 static void ioutil_filldir(const char *path, ioutil_name_table_t *dirs, ioutil_name_table_t *files)
 {
     RDIR *dirp = NULL;
@@ -275,6 +281,10 @@ static void ioutil_filldir(const char *path, ioutil_name_table_t *dirs, ioutil_n
 /* #endif */
 
     dirp = retro_opendir(path);
+	if(!dirp) {
+		LOG_PUT("Could not open '%s'", path);
+		return;
+	}
 
     dp = retro_readdir(dirp);
 
