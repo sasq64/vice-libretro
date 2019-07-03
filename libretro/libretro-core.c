@@ -2,11 +2,11 @@
 #include "libretro-core.h"
 
 //CORE VAR
-#ifdef _WIN32
-char slash = '\\';
-#else
+//#ifdef _WIN32
+//char slash = '\\';
+//#else
 char slash = '/';
-#endif
+//#endif
 
 bool retro_load_ok = false;
 
@@ -186,6 +186,8 @@ int pre_main(const char *argv)
          i=loadcmdfile((char*)argv);     
    }
 
+   printf("%d '%s'\n", i, argv);
+
    if(i==1)
    {
       parse_cmdline(CMDFILE);      
@@ -255,13 +257,13 @@ void parse_cmdline(const char *argv)
 {
    char *p,*p2,*start_of_word;
    int c,c2;
-   static char buffer[512*4];
+   char buffer[512*4];
    enum states { DULL, IN_WORD, IN_STRING } state = DULL;
 
    strcpy(buffer,argv);
-   strcat(buffer," \0");
+   strcat(buffer," ");
 
-   for (p = buffer; *p != '\0'; p++)
+   for (p = buffer; *p != 0; p++)
    {
       c = (unsigned char) *p; /* convert to unsigned char for is* functions */
       switch (state)
@@ -843,6 +845,7 @@ static struct retro_disk_control_callback diskControl = {
 void retro_init(void)
 {    	
    const char *system_dir = NULL;
+   *RPATH = 0;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir)
    {
@@ -1075,7 +1078,10 @@ void retro_run(void)
 bool retro_load_game(const struct retro_game_info *info)
 {
    if(info->meta) {
+	  retro_run();
       if(strcmp(info->meta, "cart") == 0)
+         cartridge_attach_image(CARTRIDGE_CRT, info->path);
+      else if(strcmp(info->meta, "cartrr") == 0)
          cartridge_attach_image(CARTRIDGE_RETRO_REPLAY, info->path);
       else if(strcmp(info->meta, "disk") == 0)
         file_system_attach_disk(8, info->path);
@@ -1113,20 +1119,23 @@ bool retro_load_game_special(unsigned type, const struct retro_game_info *info, 
    (void)num;
    return false;
 }
-
+#include <c64-snapshot.h>
 size_t retro_serialize_size(void)
 {
-   return 0;
+   return 800000;
 }
 
 bool retro_serialize(void *data_, size_t size)
 {
-   return false;
+   int rc = c64_snapshot_write("test.snap", 0, 1, 0);
+   return true;
 }
 
 bool retro_unserialize(const void *data_, size_t size)
 {
-   return false;
+   c64_snapshot_read("test.snap", 0);
+   microSecCounter = 0;
+   return true;
 }
 
 void *retro_get_memory_data(unsigned id)

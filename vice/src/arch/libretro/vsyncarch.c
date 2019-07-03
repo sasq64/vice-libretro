@@ -80,12 +80,16 @@ void vsyncarch_display_speed(double speed, double frame_rate, int warp_enabled)
     ui_display_speed((float)speed, (float)frame_rate, warp_enabled);
 }
 
+extern long microSecCounter;
+#include <unistd.h>
 /* Sleep a number of timer units. */
 void vsyncarch_sleep(signed long delay)
 {
     // NOTE: Cores should not sleep. vsyncarch_sleep is only used by vice to
     // keep a stable 50Hz refresh rate, which for libretro is the responsibility
     // of the frontend.
+    //usleep(delay);
+    microSecCounter += delay;
 }
 
 void vsyncarch_presync(void)
